@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useEffect, useState } from 'react';
 import Auxi from '../../hoc/Auxi/Auxi';
 import Burger from '../../components/Burger/Burger';
 import BuildControls from '../../components/Burger/BuildControls/BuildControls';
@@ -13,24 +13,15 @@ import * as actions from '../../store/actions/index';
 
 
 
-export class BurgerBuilder extends Component {
-  state = {
-    purchasing: false
-  };
+const burgerBuilder = (props)=> {
 
-  componentDidMount() {
-    // Will handle this code in bugerBuilder.js action creators
-    this.props.onInitIngredients();
-    // axios
-    //   .get(
-    //     'https://react-kay-burger-builder-default-rtdb.firebaseio.com/Ingredients.json'
-    //   )
-    //   .then((response) => {
-    //     this.setState({ ingredients: response.data });
-    //   });
-  }
+  const [purchasing, setPurchasing]=useState(false);
 
-  updatePurachaseableState(ingredients) {
+  useEffect(()=>{
+    props.onInitIngredients();
+  },[]);
+
+  const updatePurachaseableState = (ingredients) =>{
     // arr.reduce(callback( accumulator, currentValue, [, index[, array]] )[, initialValue]) - we used:
     // arr.reduce(callback( sum (accumulator), el(currentValue)) =>{}, 0(initialValue))
     const sum = Object.keys(ingredients)
@@ -41,46 +32,32 @@ export class BurgerBuilder extends Component {
         return sum + el;
       }, 0);
     return sum > 0;
-  }
+  };
 
-  purchaseHandler = () => {
-    if(this.props.isAuthenticated){
-      this.setState({ purchasing: true });
+  const purchaseHandler = () => {
+    if(props.isAuthenticated){
+      setPurchasing(true);
     }else{
       // this is where the user should go after authenticating 
       // this is also set in our navigation authenticate option if the user clicks there
-      this.props.onSetAuthRedirectPath('/checkout');
+      props.onSetAuthRedirectPath('/checkout');
       // history comes from React Router
-      this.props.history.push('/auth');
+      props.history.push('/auth');
     }
   };
 
-  purchaseCancelHandler = () => {
-    this.setState({ purchasing: false });
+ const purchaseCancelHandler = () => {
+    setPurchasing(false);
   };
 
-  purchaseContinueHandler = () => {
-    this.props.onInitPruchase();
-    this.props.history.push('/checkout');
-
-    // const queryParams = [];
-    // for(let i in this.state.ingredients){
-    //   // encodes element so this can be used in a URL
-    //   queryParams.push(encodeURIComponent(i) + '=' + encodeURIComponent(this.state.ingredients[i]));
-    // }
-    // queryParams.push('price=' + this.state.totalPrice);
-    // const queryString = queryParams.join('&');
-
-    // // This will create something like this http://localhost:3000/checkout?bacon=1&cheese=1&meat=0&salad=1
-    // this.props.history.push({
-    //   pathname:'/checkout',
-    //   search:'?' + queryString
-    // });
+  const purchaseContinueHandler = () => {
+    props.onInitPruchase();
+    props.history.push('/checkout');
   };
 
-  render() {
+  
     const disabledInfo = {
-      ...this.props.ing,
+      ...props.ing,
     };
 
     for (let key in disabledInfo) {
@@ -88,43 +65,43 @@ export class BurgerBuilder extends Component {
     }
 
     let orderSummary = null;
-    let burger = this.props.error ? <p>Ingredients cannot be loaded</p> : <Spinner />;
+    let burger = props.error ? <p>Ingredients cannot be loaded</p> : <Spinner />;
 
     // As we load ingredients dynamically from Firebase db we need to check if they have been downloaded
-    if (this.props.ing) {
+    if (props.ing) {
       burger = (
         <Auxi>
-          <Burger ingredients={this.props.ing} />
+          <Burger ingredients={props.ing} />
           <BuildControls
-            ingredientAdded={this.props.onIngredientAdded}
-            ingredientRemoved={this.props.onIngredientRemoved}
+            ingredientAdded={props.onIngredientAdded}
+            ingredientRemoved={props.onIngredientRemoved}
             disabled={disabledInfo}
-            purchaseable={this.updatePurachaseableState(this.props.ing)}
-            ordered={this.purchaseHandler}
-            isAuth={this.props.isAuthenticated}
-            price={this.props.tPrice}/>
+            purchaseable={updatePurachaseableState(props.ing)}
+            ordered={purchaseHandler}
+            isAuth={props.isAuthenticated}
+            price={props.tPrice}/>
         </Auxi>
       );
       orderSummary = ( 
         <OrderSummary
-          ingredients={this.props.ing}
-          price={this.props.tPrice}
-          purchaseCancelled={this.purchaseCancelHandler}
-          purchaseContinued={this.purchaseContinueHandler}/>
+          ingredients={props.ing}
+          price={props.tPrice}
+          purchaseCancelled={purchaseCancelHandler}
+          purchaseContinued={purchaseContinueHandler}/>
       );
     }
 
     return (
       <Auxi>
         <Modal
-          show={this.state.purchasing}
-          modalClosed={this.purchaseCancelHandler}>
+          show={purchasing}
+          modalClosed={purchaseCancelHandler}>
           {orderSummary}
         </Modal>
         {burger}
       </Auxi>
     );
-  }
+  
 }
 
 const mapStateToProps = state=>{
@@ -146,4 +123,4 @@ const mapDispatchToProps = dispatch=> {
 
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(withErrorHandler(BurgerBuilder, axios));
+export default connect(mapStateToProps, mapDispatchToProps)(withErrorHandler(burgerBuilder, axios));
