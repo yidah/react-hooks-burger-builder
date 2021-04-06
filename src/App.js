@@ -24,9 +24,12 @@ const Auth = React.lazy(() => {
 });
 
 const app = (props) => {
+  // Object distructoring to get something (this case onTryAutoSignup) out of props into a different constant 
+  const {onTryAutoSignup} = props;
+
   useEffect(() => {
-    props.onTryAutoSignup();
-  }, []);
+    onTryAutoSignup();
+  }, [onTryAutoSignup]);
 
   let routes = (
     <Switch>

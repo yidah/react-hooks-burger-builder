@@ -44,12 +44,14 @@ const auth = (props) => {
   
   const [isSignup, setIsSignup] = useState(true);
 
+  const {buildingBurger, authRedirectPath, onSetAuthRedirectPath} = props;
+
   useEffect(() => {
     // If we are trying to redirec to checkout eventhough we are not building a burger
-    if (!props.buildingBurger && props.authRedirectPath !== '/') {
-      props.onSetAuthRedirectPath();
+    if (!buildingBurger && authRedirectPath !== '/') {
+      onSetAuthRedirectPath();
     }
-  }, []);
+  }, [buildingBurger, authRedirectPath, onSetAuthRedirectPath]);
 
   const inputChangedHandler = (event, controlName) => {
     //USING UTILITY FUNCTION updateObject.
